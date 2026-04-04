@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'api/data_uploader.dart';
 import 'gps/gps_collector.dart';
 import 'logging/csv_logger.dart';
 import 'obd/obd_collector.dart';
@@ -22,9 +23,10 @@ class TracxApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ObdCollector()),
-        ChangeNotifierProvider(create: (ctx) => GpsCollector()),
+        ChangeNotifierProvider(create: (_) => GpsCollector()),
         ChangeNotifierProvider(create: (_) => AccelCollector()),
         ChangeNotifierProvider(create: (_) => CsvLogger()),
+        ChangeNotifierProvider(create: (_) => DataUploader()),
       ],
       child: MaterialApp(
         title: 'Tracx8',
