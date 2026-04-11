@@ -4,19 +4,23 @@ import 'dart:typed_data';
 
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
-/// Manages the Bluetooth RFCOMM connection to an ELM327 adapter.
-class ElmConnection {
+import 'elm_device.dart';
+
+/// Real Bluetooth RFCOMM connection to an ELM327 adapter.
+class BluetoothElmDevice implements ElmDevice {
   BluetoothConnection? _connection;
 
+  @override
   bool get isConnected => _connection?.isConnected ?? false;
 
   final _responseBuffer = StringBuffer();
   final _responseCompleter = <Completer<String>>[];
 
-  /// Connect to the given Bluetooth device.
-  Future<void> connect(BluetoothDevice device) async {
+  /// Connect to the given Bluetooth address.
+  @override
+  Future<void> connectToAddress(String address) async {
     await disconnect();
-    _connection = await BluetoothConnection.toAddress(device.address);
+    _connection = await BluetoothConnection.toAddress(address);
 
     // Listen for incoming data
     _connection!.input?.listen(
@@ -39,7 +43,7 @@ class ElmConnection {
     );
   }
 
-  /// Disconnect and clean up.
+  @override
   Future<void> disconnect() async {
     try {
       await _connection?.close();
@@ -52,7 +56,7 @@ class ElmConnection {
     _responseCompleter.clear();
   }
 
-  /// Send a command and wait for the response (until '>' prompt).
+  @override
   Future<String> sendCommand(String command, {Duration? timeout}) async {
     if (!isConnected) throw Exception('Not connected');
 
