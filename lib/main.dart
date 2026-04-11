@@ -4,11 +4,18 @@ import 'package:provider/provider.dart';
 import 'api/data_uploader.dart';
 import 'gps/gps_collector.dart';
 import 'logging/csv_logger.dart';
+import 'obd/elm_connection.dart';
+import 'obd/elm_device.dart';
+import 'obd/fake_elm_device.dart';
 import 'obd/obd_collector.dart';
 import 'sensor/accel_collector.dart';
 import 'ui/screens/connect_screen.dart';
 import 'ui/screens/dashboard_screen.dart';
 import 'ui/theme/app_theme.dart';
+
+/// Set to `true` to use the simulated ELM327 device.
+/// Flip to `false` when real Bluetooth hardware is available.
+const bool useFakeDevice = true;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,9 +27,14 @@ class TracxApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ElmDevice elmDevice =
+        useFakeDevice ? FakeElmDevice() : BluetoothElmDevice();
+
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ObdCollector()),
+        ChangeNotifierProvider(
+          create: (_) => ObdCollector(device: elmDevice),
+        ),
         ChangeNotifierProvider(create: (_) => GpsCollector()),
         ChangeNotifierProvider(create: (_) => AccelCollector()),
         ChangeNotifierProvider(create: (_) => CsvLogger()),

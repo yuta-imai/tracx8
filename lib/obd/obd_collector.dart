@@ -1,9 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
-import 'elm_connection.dart';
+import 'elm_device.dart';
 import 'elm_protocol.dart';
 import 'obd_pid.dart';
 
@@ -31,6 +30,8 @@ class ObdSnapshot {
 
 /// Orchestrates OBD-II data collection by polling PIDs in a loop.
 class ObdCollector extends ChangeNotifier {
+  ObdCollector({required ElmDevice device}) : _connection = device;
+
   static const _pollPids = [
     ObdPid.engineRpm,
     ObdPid.vehicleSpeed,
@@ -39,7 +40,10 @@ class ObdCollector extends ChangeNotifier {
     ObdPid.mafFlow,
   ];
 
-  final ElmConnection _connection = ElmConnection();
+  final ElmDevice _connection;
+
+  /// The underlying [ElmDevice] used by this collector.
+  ElmDevice get device => _connection;
 
   ObdConnectionState _state = ObdConnectionState.disconnected;
   ObdConnectionState get state => _state;
@@ -53,12 +57,12 @@ class ObdCollector extends ChangeNotifier {
   bool _polling = false;
 
   /// Connect to an ELM327 device and initialize.
-  Future<void> connect(BluetoothDevice device) async {
+  Future<void> connect(String address) async {
     _state = ObdConnectionState.connecting;
     notifyListeners();
 
     try {
-      await _connection.connect(device);
+      await _connection.connectToAddress(address);
 
       // Send initialization commands
       for (final cmd in ElmProtocol.initCommands) {
